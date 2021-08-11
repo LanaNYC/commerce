@@ -3,12 +3,18 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 
-from .models import User
+from .models import User, Categories, Listings
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    return render(request, "auctions/index.html", {
+        "listings": Listings.objects.all()
+     })
+
+    # Display ALL active listings for ALL Users if not logged in 
+    # if logged in display only Users active listing
 
 
 def login_view(request):
@@ -61,3 +67,10 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+@login_required
+def my_index(request, user_id):
+    pass
+# Get username via user_ID 
+# display all active listings (maybe add link to not-active listings too) for this User only
