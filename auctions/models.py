@@ -14,7 +14,7 @@ class Categories(models.Model):
         return f" {self.description}"
 
 class Listings(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, null=True) #May need to add related_name
     title = models.CharField(max_length=64)
     description = models.TextField(blank = True)
     starting_bid = models.DecimalField(max_digits=8, decimal_places=2)

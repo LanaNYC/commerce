@@ -9,12 +9,15 @@ from .models import User, Categories, Listings
 
 
 def index(request):
+
+#Display All active listings for ALL users (loggedin or not)
+
     return render(request, "auctions/index.html", {
         "listings": Listings.objects.all()
      })
 
-    # Display ALL active listings for ALL Users if not logged in 
-    # if logged in display only Users active listing
+    # NEED TO FILTER VIA 'IS_ACTIVE" FIELD 
+    
 
 
 def login_view(request):
@@ -70,7 +73,21 @@ def register(request):
 
 
 @login_required
-def my_index(request, user_id):
-    pass
-# Get username via user_ID 
+def my_listing(request, user_id):
+
+#Display All active listings for one logged in user only.
+
+    current_user = User.objects.get(pk=user_id)
+    print(user_id)
+    print("10:")
+    print(current_user)
+    filtered_listings = Listings.objects.filter(user_id=user_id)
+    print("20:")
+    print(filtered_listings)
+    return render(request, "auctions/index.html", {
+       "listings": filtered_listings
+    })
+
+    #STOPPED HERE - NEED to make changes on index.html. ++ ADD filter on "is_active"
+ 
 # display all active listings (maybe add link to not-active listings too) for this User only
