@@ -5,18 +5,17 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
-from .models import User, Categories, Listings
+from .models import User, Category, Listing
 
 
 def index(request):
-
 #Display All active listings for ALL users (loggedin or not)
 
     return render(request, "auctions/index.html", {
-        "listings": Listings.objects.all()
+        "listings": Listing.objects.all()
      })
 
-    # NEED TO FILTER VIA 'IS_ACTIVE" FIELD 
+    # NEED (IN FUTURE) TO FILTER VIA 'IS_ACTIVE" FIELD 
     
 
 
@@ -74,20 +73,20 @@ def register(request):
 
 @login_required
 def my_listing(request, user_id):
-
 #Display All active listings for one logged in user only.
 
     current_user = User.objects.get(pk=user_id)
     print(user_id)
     print("10:")
     print(current_user)
-    filtered_listings = Listings.objects.filter(user_id=user_id)
+    filtered_listings = Listing.objects.filter(user_id=user_id)
     print("20:")
     print(filtered_listings)
     return render(request, "auctions/index.html", {
        "listings": filtered_listings
     })
 
-    #STOPPED HERE - NEED to make changes on index.html. ++ ADD filter on "is_active"
- 
-# display all active listings (maybe add link to not-active listings too) for this User only
+    #WORKS 
+    #NEED:
+    # 1. MAKE changes on index.html. ++ ADD filter on "is_active"
+    # 2. ADD link to not-active listings too for this User only
