@@ -9,15 +9,15 @@ from .models import User, Category, Listing
 
 
 def index(request):
-#Display All active listings for ALL users (loggedin or not)
-
+    """
+    Display All active listings for ALL users (loggedin or not)
+    """
     return render(request, "auctions/index.html", {
         "listings": Listing.objects.all()
      })
 
     # NEED (IN FUTURE) TO FILTER VIA 'IS_ACTIVE" FIELD 
     
-
 
 def login_view(request):
     if request.method == "POST":
@@ -73,7 +73,9 @@ def register(request):
 
 @login_required
 def my_listing(request, user_id):
-#Display All active listings for one logged in user only.
+    """
+    Display All active listings for one logged in user only.
+    """
 
     current_user = User.objects.get(pk=user_id)
     print(user_id)
@@ -90,3 +92,14 @@ def my_listing(request, user_id):
     #NEED:
     # 1. MAKE changes on index.html. ++ ADD filter on "is_active"
     # 2. ADD link to not-active listings too for this User only
+
+
+def listing(request, listing_id):
+    """
+    Display Individual Listing Page.
+    """
+
+    listing = Listing.objects.get(pk=listing_id)  
+    return render(request, "auctions/listing.html", {
+        "listing": listing
+    })
