@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
-from .models import User, Category, Listing
+from .models import User, Category, Listing, Bid
 
 
 def index(request):
@@ -103,3 +103,4 @@ def listing(request, listing_id):
     return render(request, "auctions/listing.html", {
         "listing": listing
     })
+#NEED Maybe: Error checking - Redirect to Page Is Not Found if a user try a listing that doesn't exist.
