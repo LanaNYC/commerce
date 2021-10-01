@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
-from .models import User, Category, Listing, Bid
+from .models import User, Category, Listing, Bid, Comment, Watchlist
 
 
 def index(request):
