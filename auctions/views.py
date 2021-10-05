@@ -1,3 +1,8 @@
+"""
+items for 'auction' are from
+https://harrypotter.fandom.com/wiki/
+"""
+
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -12,13 +17,12 @@ def index(request):
     """
     Display All active listings for ALL users (loggedin or not)
     """
+    listings = Listing.objects.filter(is_active = True)
     return render(request, "auctions/index.html", {
-        "listings": Listing.objects.all()
+        "listings": listings
      })
 
-    # NEED (IN FUTURE) TO FILTER VIA 'IS_ACTIVE" FIELD 
     
-
 def login_view(request):
     if request.method == "POST":
 
@@ -78,21 +82,15 @@ def my_listing(request, user_id):
     """
 
     current_user = User.objects.get(pk=user_id)
-    print(user_id)
-    print("10:")
-    print(current_user)
     filtered_listings = Listing.objects.filter(user_id=user_id)
-    print("20:")
-    print(filtered_listings)
     return render(request, "auctions/index.html", {
        "listings": filtered_listings
     })
 
     #WORKS 
     #NEED:
-    # 1. MAKE changes on index.html. ++ ADD filter on "is_active"
     # 2. ADD link to not-active listings too for this User only
-
+   
 
 def listing(request, listing_id):
     """
@@ -103,4 +101,11 @@ def listing(request, listing_id):
     return render(request, "auctions/listing.html", {
         "listing": listing
     })
-#NEED Maybe: Error checking - Redirect to Page Is Not Found if a user try a listing that doesn't exist.
+#NEED 
+# 1. Maybe: Error checking - Redirect to Page Is Not Found if a user try a listing that doesn't exist.
+# 2. add "short_desription" to see on a page. ("Full description should be on Lisiting page")
+
+def not_active_listing(request):
+    pass
+#TODO (MAYBE)
+

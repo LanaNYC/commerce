@@ -5,7 +5,7 @@
 
     <ul>
         {% for listing in listings %}
-        <li><a href="{% url 'listing' listing.id %}" >TEST {{ listing.title }} </a> <br>
+        <li><a href="{% url 'listing' listing.id %}" >{{ listing.title }} </a> <br>
                 Starting bid: {{ listing.starting_bid }} <br>
                 <img src="{{ listing.image }}"/> <br>
                 {{ listing.category}}
