@@ -20,7 +20,7 @@ def index(request):
     listings = Listing.objects.filter(is_active = True)
     return render(request, "auctions/index.html", {
         "listings": listings
-     })
+    })
 
     
 def login_view(request):
@@ -109,3 +109,38 @@ def not_active_listing(request):
     pass
 #TODO (MAYBE)
 
+
+@login_required
+def add_watchlist(request, listing_id):
+    """
+    Add a listing to a Watchlist
+    """
+    if request.method == "POST":
+        listing = Listing.objects.get(pk=listing_id)
+        print("10") 
+        print(listing)
+        if {{request.user.is_authenticated }}:
+            user = request.user 
+            print("20")
+            print(user)
+    
+    #Maybe . need to work on it. Maybe should to return watchlist page
+    return render(request, "auctions/listing.html", {
+        "listing": listing
+    })
+    #STOPPED Here. Watch video 1hr:28m    
+
+
+@login_required
+def watchlist(request, user_id):
+    """
+    Display all of the listings that a user has added to their watchlist. 
+    Clicking on any of those listings should take the user to that listing’s page.
+    """
+    current_user = User.objects.get(pk=user_id)
+    filtered_watchlist = Watchlist.objects.filter(user_id=user_id)
+    return render(request, "auctions/index.html", {
+       "listings": filtered_watchlist
+    })
+    #NEED
+    #1. Add functionality to add watchlist on listing.html
