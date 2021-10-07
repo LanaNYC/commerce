@@ -119,15 +119,19 @@ def add_watchlist(request, listing_id):
         listing = Listing.objects.get(pk=listing_id)
         print("10") 
         print(listing)
-        if {{request.user.is_authenticated }}:
+        if request.user.is_authenticated:
             user = request.user 
             print("20")
             print(user)
+        else:
+            return render(request, "auctions/login.html", {
+                "message": "Please log in."
+            })
     
-    #Maybe . need to work on it. Maybe should to return watchlist page
-    return render(request, "auctions/listing.html", {
-        "listing": listing
-    })
+        #Maybe . need to work on it. Maybe should to return watchlist page
+        return render(request, "auctions/listing.html", {
+            "listing": listing
+        })
     #STOPPED Here. Watch video 1hr:28m    
 
 
