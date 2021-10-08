@@ -1,6 +1,16 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+<style>
+    .div-2 {
+    background-color: #ABBAEA;
+    }
+</style>
+
+
+    {% if message %}
+    <div class="div-2"> <strong> {{ message }}</strong></div>
+    {% endif %}
     
     <h2>{{listing.title}} </h2>
 

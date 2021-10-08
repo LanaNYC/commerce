@@ -117,22 +117,22 @@ def add_watchlist(request, listing_id):
     """
     if request.method == "POST":
         listing = Listing.objects.get(pk=listing_id)
-        print("10") 
-        print(listing)
         if request.user.is_authenticated:
             user = request.user 
-            print("20")
-            print(user)
+            new_watched_listing = Watchlist()
+            new_watched_listing.user = request.user
+            new_watched_listing.listing = listing
+            new_watched_listing.save()
+            return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "message": "This auction was added to your watchlist."
+            })
         else:
             return render(request, "auctions/login.html", {
                 "message": "Please log in."
             })
-    
-        #Maybe . need to work on it. Maybe should to return watchlist page
-        return render(request, "auctions/listing.html", {
-            "listing": listing
-        })
-    #STOPPED Here. Watch video 1hr:28m    
+#Works.
+#NEED. How to check if the action in watchlist already?
 
 
 @login_required
