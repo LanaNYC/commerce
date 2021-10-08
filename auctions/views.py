@@ -98,8 +98,10 @@ def listing(request, listing_id):
     """
 
     listing = Listing.objects.get(pk=listing_id)  
+    item = Watchlist.objects.filter(listing=listing_id, user=request.user)
     return render(request, "auctions/listing.html", {
-        "listing": listing
+        "listing": listing,
+        "item": item
     })
 #NEED 
 # 1. Maybe: Error checking - Redirect to Page Is Not Found if a user try a listing that doesn't exist.
@@ -136,15 +138,22 @@ def add_watchlist(request, listing_id):
 
 
 @login_required
+def remove_watchlist(request, listing_id):
+    """
+    Remove a listing to a Watchlist
+    """
+    pass
+    #TODO
+
+
+@login_required
 def watchlist(request, user_id):
     """
     Display all of the listings that a user has added to their watchlist. 
-    Clicking on any of those listings should take the user to that listing’s page.
     """
     current_user = User.objects.get(pk=user_id)
     filtered_watchlist = Watchlist.objects.filter(user_id=user_id)
-    return render(request, "auctions/index.html", {
-       "listings": filtered_watchlist
+    return render(request, "auctions/watchlist.html", {
+       "watchlist": filtered_watchlist,
+       "user": current_user
     })
-    #NEED
-    #1. Add functionality to add watchlist on listing.html
