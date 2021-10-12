@@ -1,6 +1,16 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+<style>
+    .div-2 {
+    background-color: #ABBAEA;
+    }
+</style>
+
+
+    {% if message %}
+    <div class="div-2"> <strong> {{ message }}</strong></div>
+    {% endif %}
     
     <h2>{{listing.title}} </h2>
 
@@ -8,6 +18,29 @@
         <li>{{listing.description}} </li>
         <li>Starting bid: {{ listing.starting_bid }} </li>
         <li><img src="{{ listing.image }}"/> </li>
+        <br>
+
+        {% if user.is_authenticated %}
+            {% if item %}
+            <li>
+                <form action="{% url 'remove_watchlist' listing.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="submit", value="Remove From Watchlist">
+                 </form>
+            </li>
+            {% else %}
+            <li>
+                <form action="{% url 'add_watchlist' listing.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="submit", value="Add to Watchlist">
+                 </form>
+            </li>
+            {% endif %}
+            <br>
+        {% else %}
+            Please log in to be able to add item to watchlist
+        {% endif %}
+        <br>
         <li>{{ listing.category}}</li>          
         <li>by {{listing.user_id}} </li>
     </ul>

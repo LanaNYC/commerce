@@ -20,7 +20,7 @@ def index(request):
     listings = Listing.objects.filter(is_active = True)
     return render(request, "auctions/index.html", {
         "listings": listings
-     })
+    })
 
     
 def login_view(request):
@@ -98,8 +98,10 @@ def listing(request, listing_id):
     """
 
     listing = Listing.objects.get(pk=listing_id)  
+    item = Watchlist.objects.filter(listing=listing_id, user=request.user)
     return render(request, "auctions/listing.html", {
-        "listing": listing
+        "listing": listing,
+        "item": item
     })
 #NEED 
 # 1. Maybe: Error checking - Redirect to Page Is Not Found if a user try a listing that doesn't exist.
@@ -109,3 +111,64 @@ def not_active_listing(request):
     pass
 #TODO (MAYBE)
 
+
+@login_required
+def add_watchlist(request, listing_id):
+    """
+    Add a listing to a Watchlist
+    """
+    if request.method == "POST":
+        listing = Listing.objects.get(pk=listing_id)
+        if request.user.is_authenticated:
+            user = request.user 
+            new_watched_listing = Watchlist()
+            new_watched_listing.user = request.user
+            new_watched_listing.listing = listing
+            new_watched_listing.save()
+            return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "message": "This auction was added to your watchlist."
+            })
+        else:
+            return render(request, "auctions/login.html", {
+                "message": "Please log in."
+            })
+
+
+@login_required
+def remove_watchlist(request, listing_id):
+    """
+    Remove a listing to a Watchlist
+    """
+    if request.method == "POST":
+        listing = Listing.objects.get(pk=listing_id)
+        if request.user.is_authenticated:
+            user = request.user 
+            watched_listing = Watchlist.objects.filter(listing=listing_id, user=request.user)
+            watched_listing.delete()
+            return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "message": "This auction was removed from your watchlist."
+            })
+        else:
+            return render(request, "auctions/login.html", {
+                "message": "Please log in."
+            })
+   
+
+@login_required
+def watchlist(request, user_id):
+    """
+    Display all of the listings that a user has added to their watchlist. 
+    """
+    current_user = User.objects.get(pk=user_id)
+    filtered_watchlist = Watchlist.objects.filter(user_id=user_id)
+    return render(request, "auctions/watchlist.html", {
+       "watchlist": filtered_watchlist,
+       "user": current_user
+    })
+
+
+@login_required
+def create_listing(request, user_id):
+    pass
