@@ -133,8 +133,6 @@ def add_watchlist(request, listing_id):
             return render(request, "auctions/login.html", {
                 "message": "Please log in."
             })
-#Works.
-#NEED. How to check if the action in watchlist already?
 
 
 @login_required
@@ -142,9 +140,21 @@ def remove_watchlist(request, listing_id):
     """
     Remove a listing to a Watchlist
     """
-    pass
-    #TODO
-
+    if request.method == "POST":
+        listing = Listing.objects.get(pk=listing_id)
+        if request.user.is_authenticated:
+            user = request.user 
+            watched_listing = Watchlist.objects.filter(listing=listing_id, user=request.user)
+            watched_listing.delete()
+            return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "message": "This auction was removed from your watchlist."
+            })
+        else:
+            return render(request, "auctions/login.html", {
+                "message": "Please log in."
+            })
+   
 
 @login_required
 def watchlist(request, user_id):
@@ -157,3 +167,8 @@ def watchlist(request, user_id):
        "watchlist": filtered_watchlist,
        "user": current_user
     })
+
+
+@login_required
+def create_listing(request, user_id):
+    pass
