@@ -9,8 +9,17 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django import forms
+from django.forms import ModelForm
 
 from .models import User, Category, Listing, Bid, Comment, Watchlist
+
+
+# Create the form class.
+class newListingForm(ModelForm):
+    class Meta:
+        model = Listing
+        fields = ['title', 'description', 'starting_bid', 'image', 'category', 'is_active']
 
 
 def index(request):
@@ -171,4 +180,33 @@ def watchlist(request, user_id):
 
 @login_required
 def create_listing(request, user_id):
-    pass
+ #STOPPEd HERE. NEED TO ADD FUNCTION TO EVOID SAVING THE SAME AUCTION
+
+    if request.method == "POST":
+        form = newListingForm(request.POST)
+        if form.is_valid():
+            #if form.title is None:
+            new_action=form.save()
+            return HttpResponseRedirect(reverse("index"))
+            #else:   
+                #return render(request, "auctions/create.html", {
+                #"form": newListingForm(),
+               # "message": "You already have an auction with this title."
+                # })   
+        else:
+            return render(request, "auctions/create.html", {
+                "form": newListingForm(),
+                "message": "Your form is invalid."
+            })   
+    # If the method is GET, User will see an empty form
+    else:
+        return render(request, "auctions/create.html", {
+            "form": newListingForm()
+        })
+
+
+
+#They should be able to specify a title for the listing, 
+# a text-based description, and what the starting bid should be. 
+# Users should also optionally be able to provide a URL for an image for the listing
+#  and/or a category (e.g. Fashion, Toys, Electronics, Home, etc.).
