@@ -17,7 +17,7 @@ class Listing(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="listings") 
     title = models.CharField(max_length=64)
     description = models.TextField(blank = True)
-    starting_bid = models.DecimalField(max_digits=8, decimal_places=2) #Maybe need to change it to allow Billion
+    starting_bid = models.DecimalField(max_digits=8, decimal_places=2, default=0.0) #Maybe need to change it to allow Billion
     image = models.URLField(blank = True)
     category = models.ForeignKey(Category, null = True, blank=True, on_delete=models.CASCADE, related_name="categories")
     is_active = models.BooleanField(default=True)

@@ -5,12 +5,22 @@ https://harrypotter.fandom.com/wiki/
 
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.db.models.query import EmptyQuerySet, QuerySet
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django import forms
+from django.forms import ModelForm
 
 from .models import User, Category, Listing, Bid, Comment, Watchlist
+
+
+# Create the form class.
+class newListingForm(ModelForm):
+    class Meta:
+        model = Listing
+        fields = ['title', 'description', 'starting_bid', 'image', 'category', 'is_active']
 
 
 def index(request):
@@ -171,4 +181,28 @@ def watchlist(request, user_id):
 
 @login_required
 def create_listing(request, user_id):
-    pass
+
+    if request.method == "POST":
+        form = newListingForm(request.POST)
+        if form.is_valid():
+            title = request.POST["title"]
+            db_title = Listing.objects.filter(title=title, user_id=request.user.id)
+
+            if db_title:
+                return render(request, "auctions/create.html", {
+                    "form": form,
+                    "message": "You already have an auction with this title."
+                })  
+            else:   
+                new_action=form.save()
+                return HttpResponseRedirect(reverse("index"))
+        else:
+            return render(request, "auctions/create.html", {
+                "form": newListingForm(),
+                "message": "Your form is invalid."
+            })   
+    # If the method is GET, User will see an empty form
+    else:
+        return render(request, "auctions/create.html", {
+            "form": newListingForm()
+        })
