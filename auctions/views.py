@@ -5,6 +5,7 @@ https://harrypotter.fandom.com/wiki/
 
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.db.models.query import EmptyQuerySet, QuerySet
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -180,19 +181,21 @@ def watchlist(request, user_id):
 
 @login_required
 def create_listing(request, user_id):
- #STOPPEd HERE. NEED TO ADD FUNCTION TO EVOID SAVING THE SAME AUCTION
 
     if request.method == "POST":
         form = newListingForm(request.POST)
         if form.is_valid():
-            #if form.title is None:
-            new_action=form.save()
-            return HttpResponseRedirect(reverse("index"))
-            #else:   
-                #return render(request, "auctions/create.html", {
-                #"form": newListingForm(),
-               # "message": "You already have an auction with this title."
-                # })   
+            title = request.POST["title"]
+            db_title = Listing.objects.filter(title=title, user_id=request.user.id)
+
+            if db_title:
+                return render(request, "auctions/create.html", {
+                    "form": form,
+                    "message": "You already have an auction with this title."
+                })  
+            else:   
+                new_action=form.save()
+                return HttpResponseRedirect(reverse("index"))
         else:
             return render(request, "auctions/create.html", {
                 "form": newListingForm(),
@@ -203,10 +206,3 @@ def create_listing(request, user_id):
         return render(request, "auctions/create.html", {
             "form": newListingForm()
         })
-
-
-
-#They should be able to specify a title for the listing, 
-# a text-based description, and what the starting bid should be. 
-# Users should also optionally be able to provide a URL for an image for the listing
-#  and/or a category (e.g. Fashion, Toys, Electronics, Home, etc.).
