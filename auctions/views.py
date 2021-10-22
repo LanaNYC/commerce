@@ -92,13 +92,14 @@ def my_listing(request, user_id):
     """
 
     current_user = User.objects.get(pk=user_id)
-    filtered_listings = Listing.objects.filter(user_id=user_id)
+    filtered_listings = Listing.objects.filter(user_id=user_id, is_active = True)
     return render(request, "auctions/index.html", {
        "listings": filtered_listings
     })
 
     #WORKS 
-    #NEED:
+    #NEED: (IMPORTANT to Do it) See def unsold_listings 
+    # Make Unsold nav. link in Nav bar (will store unsold / inactive items there)
     # 2. ADD link to not-active listings too for this User only
    
 
@@ -117,7 +118,7 @@ def listing(request, listing_id):
 # 1. Maybe: Error checking - Redirect to Page Is Not Found if a user try a listing that doesn't exist.
 # 2. add "short_desription" to see on a page. ("Full description should be on Lisiting page")
 
-def not_active_listing(request):
+def unsold_listing(request):
     pass
 #TODO (MAYBE)
 
@@ -173,10 +174,16 @@ def watchlist(request, user_id):
     """
     current_user = User.objects.get(pk=user_id)
     filtered_watchlist = Watchlist.objects.filter(user_id=user_id)
-    return render(request, "auctions/watchlist.html", {
-       "watchlist": filtered_watchlist,
-       "user": current_user
-    })
+    if filtered_watchlist:    
+        return render(request, "auctions/watchlist.html", {
+        "watchlist": filtered_watchlist,
+        "user": current_user
+        })
+    else:
+        return render(request, "auctions/watchlist.html", {
+        "message": "You don't watch any auctions yet.",
+        "user": current_user
+        })
 
 
 @login_required
@@ -206,3 +213,29 @@ def create_listing(request, user_id):
         return render(request, "auctions/create.html", {
             "form": newListingForm()
         })
+
+
+@login_required
+def bid(request):
+    """
+    If the user is signed in, the user should be able to bid on the item. 
+
+    The bid must be at least as large as the starting bid, and must be greater than any other bids
+     that have been placed (if any).  
+     If the bid doesn’t meet those criteria, the user should be presented with an error.
+
+    If the user is signed in and is the one who created the listing, 
+     the user should have the ability to “close” the auction from this page, 
+     which makes the highest bidder the winner of the auction and makes the listing no longer active.
+    
+    If a user is signed in on a closed listing page, and the user has won that auction, 
+     the page should say so.
+    
+    """
+    # When action is closed, take this tame to compare and take the biggest bid
+    # this user.id will be the winner.
+    #If user.id = iser.id massage - You won
+    # else listing view - message - auction is closed. Sorry, you haven't won this time.
+    pass
+
+#STOPPED Here
