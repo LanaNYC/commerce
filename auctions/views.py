@@ -22,6 +22,11 @@ class newListingForm(ModelForm):
         model = Listing
         fields = ['title', 'description', 'starting_bid', 'image', 'category', 'is_active']
 
+class bidForm(ModelForm):
+    class Meta:
+        model = Bid
+        fields = ['amount']        
+
 
 def index(request):
     """
@@ -216,7 +221,7 @@ def create_listing(request, user_id):
 
 
 @login_required
-def bid(request):
+def place_bid(request, listing_id):
     """
     If the user is signed in, the user should be able to bid on the item. 
 
@@ -224,18 +229,51 @@ def bid(request):
      that have been placed (if any).  
      If the bid doesn’t meet those criteria, the user should be presented with an error.
 
-    If the user is signed in and is the one who created the listing, 
+    """
+    if request.method == "POST":
+        form = bidForm(request.POST)
+        listing = Listing.objects.get(pk=listing_id)
+        user_id = request.user.id
+
+        # If 
+       # if this lisiting has no bidding
+            # current_price = Listing.objects.___starting_bid (where  pk = listing_id) ##Maybe smth
+                            ##Listing.objects.filter(lisitng.id).starting_bid
+       # else:
+            #current_price = select MAX bid.amaount where listing.id = pk 
+        if form.is_valid():
+            new_bid = request.POST["amount"]
+            if new_bid > current_price:
+                new_bid = Bid()
+                new_bid.save()
+            else:
+                return render(request, "auctions/listing.html", {
+                "form": bidForm(),
+                "message": "Your bid must be greater current price."
+            })  
+            
+
+     # If the method is GET, User will see an empty form
+    else:
+        return render(request, "auctions/listing.html", {
+            "form": bidForm()
+        })
+    
+
+
+    pass
+
+#STOPPED Here
+
+"""
+If the user is signed in and is the one who created the listing, 
      the user should have the ability to “close” the auction from this page, 
      which makes the highest bidder the winner of the auction and makes the listing no longer active.
     
     If a user is signed in on a closed listing page, and the user has won that auction, 
      the page should say so.
-    
-    """
-    # When action is closed, take this tame to compare and take the biggest bid
+"""
+# When action is closed, take this tame to compare and take the biggest bid
     # this user.id will be the winner.
     #If user.id = iser.id massage - You won
     # else listing view - message - auction is closed. Sorry, you haven't won this time.
-    pass
-
-#STOPPED Here
