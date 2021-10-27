@@ -5,6 +5,8 @@ https://harrypotter.fandom.com/wiki/
 
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.db.models import Max, Value
+from django.db.models import query
 from django.db.models.query import EmptyQuerySet, QuerySet
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -25,7 +27,7 @@ class newListingForm(ModelForm):
 class bidForm(ModelForm):
     class Meta:
         model = Bid
-        fields = ['amount']        
+        fields = ['ammount']        
 
 
 def index(request):
@@ -219,7 +221,6 @@ def create_listing(request, user_id):
             "form": newListingForm()
         })
 
-
 @login_required
 def place_bid(request, listing_id):
     """
@@ -231,39 +232,60 @@ def place_bid(request, listing_id):
 
     """
     if request.method == "POST":
+        print("100")
         form = bidForm(request.POST)
         listing = Listing.objects.get(pk=listing_id)
+        print("20")
+        print(listing)
         user_id = request.user.id
+        print("30")
+        print(user_id)
+        has_abid = Bid.objects.filter(listing=listing)
+        print("40")
+        print(has_abid)
+       
+        if not has_abid:   ##Or count / length if == 0 => doesn't exist/ empty
+            print("150: NO BIDDING")
+            query_dic = Listing.objects.filter(pk=listing_id).values("starting_bid")
+            print(query_dic)
+            for q in query_dic:
+                print(q["starting_bid"])
+                current_price = q["starting_bid"]
+                print("Current Price =")
+                print(current_price)
+### STOPPED HERE. Current price is an int now!!!
+### NEED to move else statement to allow programm to move futher
+## Did indentation. Didn't test it yet.
+        else:
+            print("160: Have at least one bidding")
+            current_price = Bid.objects.filter(listing=listing).aggregate(Max('amount'))
+            print(current_price)
 
-        # If 
-       # if this lisiting has no bidding
-            # current_price = Listing.objects.___starting_bid (where  pk = listing_id) ##Maybe smth
-                            ##Listing.objects.filter(lisitng.id).starting_bid
-       # else:
-            #current_price = select MAX bid.amaount where listing.id = pk 
         if form.is_valid():
+            print("170 FORM is valid")
             new_bid = request.POST["amount"]
+            print(new_bid)
             if new_bid > current_price:
                 new_bid = Bid()
                 new_bid.save()
+                return render(request, "auctions/listing.html", {
+                "form": bidForm(),
+                "message": "You palced your bid."
+                })  
             else:
                 return render(request, "auctions/listing.html", {
                 "form": bidForm(),
                 "message": "Your bid must be greater current price."
             })  
             
-
      # If the method is GET, User will see an empty form
     else:
+        print("200")
         return render(request, "auctions/listing.html", {
             "form": bidForm()
         })
     
 
-
-    pass
-
-#STOPPED Here
 
 """
 If the user is signed in and is the one who created the listing, 

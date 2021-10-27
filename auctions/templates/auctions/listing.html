@@ -21,6 +21,7 @@
         <li>
             <form action="{% url 'place_bid' listing.id %}" method="post">
                 {% csrf_token %}
+                <input type="number", name="bid", placeholder="Place your bid here", min="0">
                 <input type="submit", value="Place Bid">
              </form>
         </li>
