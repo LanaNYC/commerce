@@ -29,11 +29,10 @@ class Bid(models.Model):
     ammount = models.PositiveIntegerField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="userBids") 
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="allListingBids") 
-    bidTime = models.DateTimeField()
     winning = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.ammount} by {self.user} {self.bidTime}"
+        return f"{self.ammount} by {self.user}"
 
 class Watchlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="watchedListings")

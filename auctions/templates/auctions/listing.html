@@ -21,7 +21,7 @@
         <li>
             <form action="{% url 'place_bid' listing.id %}" method="post">
                 {% csrf_token %}
-                <input type="number", name="bid", placeholder="Place your bid here", min="0">
+                <input type="number", name="ammount", placeholder="Place your bid here", min="0">
                 <input type="submit", value="Place Bid">
              </form>
         </li>
@@ -46,7 +46,7 @@
             {% endif %}
             <br>
         {% else %}
-            Please log in to be able to add item to watchlist
+            <h2>Please log in to be able to add item to watchlist</h2>
         {% endif %}
         <br>
         <li>{{ listing.category}}</li>          

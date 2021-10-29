@@ -27,7 +27,8 @@ class newListingForm(ModelForm):
 class bidForm(ModelForm):
     class Meta:
         model = Bid
-        fields = ['ammount']        
+        fields = ['ammount', 'user', 'listing', 'winning']        
+        
 
 
 def index(request):
@@ -109,7 +110,7 @@ def my_listing(request, user_id):
     # Make Unsold nav. link in Nav bar (will store unsold / inactive items there)
     # 2. ADD link to not-active listings too for this User only
    
-
+#NEED Not logged in cant see a page because of the item(user= user.id)
 def listing(request, listing_id):
     """
     Display Individual Listing Page.
@@ -221,6 +222,7 @@ def create_listing(request, user_id):
             "form": newListingForm()
         })
 
+#NEED ADD CURRENT price on listing html
 @login_required
 def place_bid(request, listing_id):
     """
@@ -232,52 +234,69 @@ def place_bid(request, listing_id):
 
     """
     if request.method == "POST":
-        print("100")
+        print("POST")
         form = bidForm(request.POST)
         listing = Listing.objects.get(pk=listing_id)
-        print("20")
-        print(listing)
         user_id = request.user.id
-        print("30")
-        print(user_id)
         has_abid = Bid.objects.filter(listing=listing)
-        print("40")
-        print(has_abid)
        
-        if not has_abid:   ##Or count / length if == 0 => doesn't exist/ empty
+        if not has_abid:   
             print("150: NO BIDDING")
             query_dic = Listing.objects.filter(pk=listing_id).values("starting_bid")
-            print(query_dic)
             for q in query_dic:
-                print(q["starting_bid"])
                 current_price = q["starting_bid"]
-                print("Current Price =")
-                print(current_price)
-### STOPPED HERE. Current price is an int now!!!
-### NEED to move else statement to allow programm to move futher
-## Did indentation. Didn't test it yet.
-        else:
-            print("160: Have at least one bidding")
-            current_price = Bid.objects.filter(listing=listing).aggregate(Max('amount'))
-            print(current_price)
-
-        if form.is_valid():
-            print("170 FORM is valid")
-            new_bid = request.POST["amount"]
-            print(new_bid)
+       
+            user = request.user
+            new_bid = int(request.POST["ammount"])    
             if new_bid > current_price:
-                new_bid = Bid()
-                new_bid.save()
+                new_bid_form = Bid()
+                new_bid_form.ammount = new_bid
+                new_bid_form.user = user
+                new_bid_form.listing = listing
+                new_bid_form.winning = False
+
+                new_bid_form.save()
+                print("BID SAVED")
                 return render(request, "auctions/listing.html", {
-                "form": bidForm(),
+                "form": form,
+                "listing": listing,
+                "listing.id": listing.id,
                 "message": "You palced your bid."
                 })  
             else:
                 return render(request, "auctions/listing.html", {
-                "form": bidForm(),
+                "form": form(),
                 "message": "Your bid must be greater current price."
-            })  
-            
+            })
+          
+        else:
+            print("160: Have at least one bidding")
+            max_query_dic = Bid.objects.filter(listing=listing).aggregate(Max('ammount'))
+            print(max_query_dic) 
+
+#STOPPED HERE doesn't work current_price
+
+            #current_price = max_query_dic.values()
+            for q in max_query_dic:
+                current_price = q['ammount__max'] 
+            #if form.is_valid():
+                print("170 FORM is valid")
+                new_bid = request.POST["amount"]
+                print(new_bid)
+                if new_bid > current_price:
+                    new_bid = Bid()
+                    new_bid.save()
+                    print("BID SAVED")
+                    return render(request, "auctions/listing.html", {
+                    "form": bidForm(),
+                    "message": "You palced your bid."
+                    })  
+                else:
+                    return render(request, "auctions/listing.html", {
+                    "form": bidForm(),
+                    "message": "Your bid must be greater current price."
+                })  
+                  
      # If the method is GET, User will see an empty form
     else:
         print("200")
