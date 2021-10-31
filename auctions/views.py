@@ -5,6 +5,8 @@ https://harrypotter.fandom.com/wiki/
 
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.db.models import Max, Value
+from django.db.models import query
 from django.db.models.query import EmptyQuerySet, QuerySet
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -21,6 +23,12 @@ class newListingForm(ModelForm):
     class Meta:
         model = Listing
         fields = ['title', 'description', 'starting_bid', 'image', 'category', 'is_active']
+
+class bidForm(ModelForm):
+    class Meta:
+        model = Bid
+        fields = ['ammount', 'user', 'listing', 'winning']        
+        
 
 
 def index(request):
@@ -92,16 +100,17 @@ def my_listing(request, user_id):
     """
 
     current_user = User.objects.get(pk=user_id)
-    filtered_listings = Listing.objects.filter(user_id=user_id)
+    filtered_listings = Listing.objects.filter(user_id=user_id, is_active = True)
     return render(request, "auctions/index.html", {
        "listings": filtered_listings
     })
 
     #WORKS 
-    #NEED:
+    #NEED: (IMPORTANT to Do it) See def unsold_listings 
+    # Make Unsold nav. link in Nav bar (will store unsold / inactive items there)
     # 2. ADD link to not-active listings too for this User only
    
-
+#NEED Not logged in cant see a page because of the item(user= user.id)
 def listing(request, listing_id):
     """
     Display Individual Listing Page.
@@ -117,7 +126,7 @@ def listing(request, listing_id):
 # 1. Maybe: Error checking - Redirect to Page Is Not Found if a user try a listing that doesn't exist.
 # 2. add "short_desription" to see on a page. ("Full description should be on Lisiting page")
 
-def not_active_listing(request):
+def unsold_listing(request):
     pass
 #TODO (MAYBE)
 
@@ -173,10 +182,16 @@ def watchlist(request, user_id):
     """
     current_user = User.objects.get(pk=user_id)
     filtered_watchlist = Watchlist.objects.filter(user_id=user_id)
-    return render(request, "auctions/watchlist.html", {
-       "watchlist": filtered_watchlist,
-       "user": current_user
-    })
+    if filtered_watchlist:    
+        return render(request, "auctions/watchlist.html", {
+        "watchlist": filtered_watchlist,
+        "user": current_user
+        })
+    else:
+        return render(request, "auctions/watchlist.html", {
+        "message": "You don't watch any auctions yet.",
+        "user": current_user
+        })
 
 
 @login_required
@@ -206,3 +221,104 @@ def create_listing(request, user_id):
         return render(request, "auctions/create.html", {
             "form": newListingForm()
         })
+
+#NEED ADD CURRENT price on listing html
+@login_required
+def place_bid(request, listing_id):
+    """
+    If the user is signed in, the user should be able to bid on the item. 
+
+    The bid must be at least as large as the starting bid, and must be greater than any other bids
+     that have been placed (if any).  
+     If the bid doesn’t meet those criteria, the user should be presented with an error.
+
+    """
+    if request.method == "POST":
+        print("POST")
+        form = bidForm(request.POST)
+        listing = Listing.objects.get(pk=listing_id)
+        user_id = request.user.id
+        has_abid = Bid.objects.filter(listing=listing)
+        user = request.user
+       
+        if not has_abid:   
+            print("150: NO BIDDING")
+            query_dic = Listing.objects.filter(pk=listing_id).values("starting_bid")
+            for q in query_dic:
+                current_price = q["starting_bid"]               
+            new_bid = int(request.POST["ammount"])    
+            
+            if new_bid > current_price:
+                save_bid_to_DB(new_bid, user, listing)
+
+                return render(request, "auctions/listing.html", {
+                "form": form,
+                "listing": listing,
+                "listing.id": listing.id,
+                "message": "You palced your bid."
+                })  
+            else:
+                return render(request, "auctions/listing.html", {
+                "form": bidForm(),
+                "message": "Your bid must be greater current price."
+            })
+          
+        else:
+            print("160: Have at least one bidding")
+            max_query_dic = Bid.objects.filter(listing=listing).aggregate(Max('ammount'))
+            print(max_query_dic) 
+
+#STOPPED HERE doesn't work current_price
+
+            current_price = max_query_dic[0].ammount__max
+            
+            new_bid = request.POST["amount"]
+            print(new_bid)
+            if new_bid > current_price:
+                save_bid_to_DB(new_bid, user, listing)
+
+                print("BID SAVED")
+                return render(request, "auctions/listing.html", {
+                "form": form,
+                "listing": listing,
+                "listing.id": listing.id,
+                "message": "You palced your bid."
+                })
+            else:
+                return render(request, "auctions/listing.html", {
+                "form": bidForm(),
+                "message": "Your bid must be greater current price."
+                })  
+                  
+     # If the method is GET, User will see an empty form
+    else:
+        print("200")
+        return render(request, "auctions/listing.html", {
+            "form": bidForm()
+        })
+    
+
+def save_bid_to_DB(new_bid, user, listing):
+    new_bid_form = Bid()
+    new_bid_form.ammount = new_bid
+    new_bid_form.user = user
+    new_bid_form.listing = listing
+    new_bid_form.winning = False
+
+    new_bid_form.save()
+    print("BID SAVED") 
+
+
+
+"""
+If the user is signed in and is the one who created the listing, 
+     the user should have the ability to “close” the auction from this page, 
+     which makes the highest bidder the winner of the auction and makes the listing no longer active.
+    
+    If a user is signed in on a closed listing page, and the user has won that auction, 
+     the page should say so.
+"""
+# When action is closed, take this tame to compare and take the biggest bid
+    # this user.id will be the winner.
+    #If user.id = iser.id massage - You won
+    # else listing view - message - auction is closed. Sorry, you haven't won this time.

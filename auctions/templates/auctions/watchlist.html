@@ -1,7 +1,19 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+
+<style>
+    .div-2 {
+    background-color: #ABBAEA;
+    }
+</style>
+
+
     <h2>{{user}}'s Watchlist</h2>
+
+    {% if message %}
+    <div class="div-2"> <strong> {{ message }}</strong></div>
+    {% endif %}
 
     <ul>
         {% for item in watchlist %}
@@ -9,6 +21,7 @@
                 Starting bid: {{ item.listing.starting_bid }} <br>
                 <img src="{{ item.listing.image }}"/> <br>
         </li>
-        {% endfor %}
     </ul>
+        {% endfor %}
+          
 {% endblock %}

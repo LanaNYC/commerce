@@ -17,7 +17,7 @@ class Listing(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="listings") 
     title = models.CharField(max_length=64)
     description = models.TextField(blank = True)
-    starting_bid = models.DecimalField(max_digits=8, decimal_places=2, default=0.0) #Maybe need to change it to allow Billion
+    starting_bid = models.PositiveIntegerField() 
     image = models.URLField(blank = True)
     category = models.ForeignKey(Category, null = True, blank=True, on_delete=models.CASCADE, related_name="categories")
     is_active = models.BooleanField(default=True)
@@ -26,14 +26,13 @@ class Listing(models.Model):
         return f"{self.id}: {self.title} created by {self.user_id}"
 
 class Bid(models.Model):
-    ammount = models.DecimalField(max_digits=19, decimal_places=10)
+    ammount = models.PositiveIntegerField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="userBids") 
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="allListingBids") 
-    bidTime = models.DateTimeField()
     winning = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.ammount} by {self.user} {self.bidTime}"
+        return f"{self.ammount} by {self.user}"
 
 class Watchlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="watchedListings")

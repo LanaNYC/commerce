@@ -15,9 +15,17 @@
     <h2>{{listing.title}} </h2>
 
     <ul>
-        <li>{{listing.description}} </li>
-        <li>Starting bid: {{ listing.starting_bid }} </li>
-        <li><img src="{{ listing.image }}"/> </li>
+        <li>{{listing.description}} </li><br>
+        <li><img src="{{ listing.image }}"/> </li><br>
+        <li>Starting bid: {{ listing.starting_bid }} </li><br>
+        <li>
+            <form action="{% url 'place_bid' listing.id %}" method="post">
+                {% csrf_token %}
+                <input type="number", name="ammount", placeholder="Place your bid here", min="0">
+                <input type="submit", value="Place Bid">
+             </form>
+        </li>
+       
         <br>
 
         {% if user.is_authenticated %}
@@ -38,7 +46,7 @@
             {% endif %}
             <br>
         {% else %}
-            Please log in to be able to add item to watchlist
+            <h2>Please log in to be able to add item to watchlist</h2>
         {% endif %}
         <br>
         <li>{{ listing.category}}</li>          
