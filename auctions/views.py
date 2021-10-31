@@ -239,24 +239,18 @@ def place_bid(request, listing_id):
         listing = Listing.objects.get(pk=listing_id)
         user_id = request.user.id
         has_abid = Bid.objects.filter(listing=listing)
+        user = request.user
        
         if not has_abid:   
             print("150: NO BIDDING")
             query_dic = Listing.objects.filter(pk=listing_id).values("starting_bid")
             for q in query_dic:
-                current_price = q["starting_bid"]
-       
-            user = request.user
+                current_price = q["starting_bid"]               
             new_bid = int(request.POST["ammount"])    
+            
             if new_bid > current_price:
-                new_bid_form = Bid()
-                new_bid_form.ammount = new_bid
-                new_bid_form.user = user
-                new_bid_form.listing = listing
-                new_bid_form.winning = False
+                save_bid_to_DB(new_bid, user, listing)
 
-                new_bid_form.save()
-                print("BID SAVED")
                 return render(request, "auctions/listing.html", {
                 "form": form,
                 "listing": listing,
@@ -265,7 +259,7 @@ def place_bid(request, listing_id):
                 })  
             else:
                 return render(request, "auctions/listing.html", {
-                "form": form(),
+                "form": bidForm(),
                 "message": "Your bid must be greater current price."
             })
           
@@ -276,25 +270,24 @@ def place_bid(request, listing_id):
 
 #STOPPED HERE doesn't work current_price
 
-            #current_price = max_query_dic.values()
-            for q in max_query_dic:
-                current_price = q['ammount__max'] 
-            #if form.is_valid():
-                print("170 FORM is valid")
-                new_bid = request.POST["amount"]
-                print(new_bid)
-                if new_bid > current_price:
-                    new_bid = Bid()
-                    new_bid.save()
-                    print("BID SAVED")
-                    return render(request, "auctions/listing.html", {
-                    "form": bidForm(),
-                    "message": "You palced your bid."
-                    })  
-                else:
-                    return render(request, "auctions/listing.html", {
-                    "form": bidForm(),
-                    "message": "Your bid must be greater current price."
+            current_price = max_query_dic[0].ammount__max
+            
+            new_bid = request.POST["amount"]
+            print(new_bid)
+            if new_bid > current_price:
+                save_bid_to_DB(new_bid, user, listing)
+
+                print("BID SAVED")
+                return render(request, "auctions/listing.html", {
+                "form": form,
+                "listing": listing,
+                "listing.id": listing.id,
+                "message": "You palced your bid."
+                })
+            else:
+                return render(request, "auctions/listing.html", {
+                "form": bidForm(),
+                "message": "Your bid must be greater current price."
                 })  
                   
      # If the method is GET, User will see an empty form
@@ -304,6 +297,17 @@ def place_bid(request, listing_id):
             "form": bidForm()
         })
     
+
+def save_bid_to_DB(new_bid, user, listing):
+    new_bid_form = Bid()
+    new_bid_form.ammount = new_bid
+    new_bid_form.user = user
+    new_bid_form.listing = listing
+    new_bid_form.winning = False
+
+    new_bid_form.save()
+    print("BID SAVED") 
+
 
 
 """
