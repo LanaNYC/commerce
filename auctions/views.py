@@ -118,16 +118,16 @@ def listing(request, listing_id):
 
     listing = Listing.objects.get(pk=listing_id)  
     item = Watchlist.objects.filter(listing=listing_id, user=request.user)
+    current_price = calculate_current_price(listing_id)
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "item": item,
-        "current_price": current_price
+        "current_price": current_price,
     })
 #NEED 
 # 1. Maybe: Error checking - Redirect to Page Is Not Found if a user try a listing that doesn't exist.
-# 2. add "short_desription" to see on a page. ("Full description should be on Lisiting page")
 
-def unsold_listing(request):
+def closed_listing(request):
     pass
 #TODO (MAYBE)
 
@@ -223,17 +223,10 @@ def create_listing(request, user_id):
             "form": newListingForm()
         })
 
-#NEED ADD CURRENT price on listing html
+
 @login_required
 def place_bid(request, listing_id):
-    """
-    If the user is signed in, the user should be able to bid on the item. 
-
-    The bid must be at least as large as the starting bid, and must be greater than any other bids
-     that have been placed (if any).  
-     If the bid doesn’t meet those criteria, the user should be presented with an error.
-
-    """
+   
     if request.method == "POST":
         form = bidForm(request.POST)
         listing = Listing.objects.get(pk=listing_id)
@@ -253,7 +246,7 @@ def place_bid(request, listing_id):
                 "form": form,
                 "listing": listing,
                 "listing.id": listing.id,
-                "current_price": current_price,
+                "current_price": new_bid,
                 "message": "You palced your bid."
                 })  
             else:
@@ -264,11 +257,9 @@ def place_bid(request, listing_id):
                 "current_price": current_price,
                 "message": "Your bid must be greater current price."
             })
-          
         else:
             #Have at least one bidding
-            max_query_dic = Bid.objects.filter(listing=listing).aggregate(Max('ammount'))
-            current_price = max_query_dic["ammount__max"]
+            current_price = calculate_current_price(listing_id)
             new_bid = int(request.POST["ammount"])
             if new_bid > current_price:
                 save_bid_to_DB(new_bid, user, listing)
@@ -276,7 +267,8 @@ def place_bid(request, listing_id):
                 "form": form,
                 "listing": listing,
                 "listing.id": listing.id,
-                "current_price": current_price,
+                "has_abid": has_abid,
+                "current_price": new_bid,
                 "message": "You palced your bid."
                 })
             else:
@@ -287,13 +279,19 @@ def place_bid(request, listing_id):
                 "current_price": current_price,
                 "message": "Your bid must be greater current price."
                 })  
-                  
-     # If the method is GET, User will see an empty form
+    # If the method is GET, User will see an empty form
     else:
         return render(request, "auctions/listing.html", {
             "form": bidForm()
         })
     
+
+def calculate_current_price(listing_id):
+    listing = Listing.objects.get(pk=listing_id)
+    max_query_dic = Bid.objects.filter(listing=listing).aggregate(Max('ammount'))
+    current_price = max_query_dic["ammount__max"]
+    return(current_price)
+
 
 def save_bid_to_DB(new_bid, user, listing):
     new_bid_form = Bid()
@@ -304,8 +302,21 @@ def save_bid_to_DB(new_bid, user, listing):
 
     new_bid_form.save()
 
+@login_required
+def close_listing(request, listing_id):
+    pass
+    if request.method == "POST":
+        if request.user.is_authenticated:   
+            signed_user = request.user.id
+            query_owner = Listing.objects.filter(pk=listing_id).values("user_id")
+            for q in query_owner:
+                owner = q["user_id"]  
+            if signed_user == owner:
+                pass
 
-
+        #click on form CLOSE, which make is_active False (update db)
+        #whick trigger: take the biggest bid and make it winner = True (update)
+        #redirect to lisitng pake with massage "you won this auction". Think how make all biding and watch list inactive 
 """
 If the user is signed in and is the one who created the listing, 
      the user should have the ability to “close” the auction from this page, 

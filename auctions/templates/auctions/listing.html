@@ -18,7 +18,14 @@
         <li>{{listing.description}} </li><br>
         <li><img src="{{ listing.image }}"/> </li><br>
         <li>Starting bid: {{ listing.starting_bid }} </li><br>
-        <li> Current price: {{ current_price }}</li>
+       
+        {% if current_price is None %}
+            <li> Current price: {{ listing.starting_bid }} </li><br>
+        {% else %}    
+            <li> Current price: {{ current_price }} </li> <br>
+        {% endif %}    
+               
+        
         <li>
             <form action="{% url 'place_bid' listing.id %}" method="post">
                 {% csrf_token %}
@@ -52,7 +59,16 @@
         <br>
         <li>{{ listing.category}}</li>          
         <li>by {{listing.user_id}} </li>
+
+        <li>
+            <form action="{% url 'close_listing' listing.id %}" method="post">
+                {% csrf_token %}
+                <input type="submit", value="Close Auction">
+             </form>
+        </li>
+
     </ul>
+
     
 
 {% endblock %}
