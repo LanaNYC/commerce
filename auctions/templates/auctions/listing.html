@@ -18,6 +18,7 @@
         <li>{{listing.description}} </li><br>
         <li><img src="{{ listing.image }}"/> </li><br>
         <li>Starting bid: {{ listing.starting_bid }} </li><br>
+        <li> Current price: {{ current_price }}</li>
         <li>
             <form action="{% url 'place_bid' listing.id %}" method="post">
                 {% csrf_token %}

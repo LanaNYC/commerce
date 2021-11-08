@@ -120,7 +120,8 @@ def listing(request, listing_id):
     item = Watchlist.objects.filter(listing=listing_id, user=request.user)
     return render(request, "auctions/listing.html", {
         "listing": listing,
-        "item": item
+        "item": item,
+        "current_price": current_price
     })
 #NEED 
 # 1. Maybe: Error checking - Redirect to Page Is Not Found if a user try a listing that doesn't exist.
@@ -234,7 +235,6 @@ def place_bid(request, listing_id):
 
     """
     if request.method == "POST":
-        print("POST")
         form = bidForm(request.POST)
         listing = Listing.objects.get(pk=listing_id)
         user_id = request.user.id
@@ -242,7 +242,6 @@ def place_bid(request, listing_id):
         user = request.user
        
         if not has_abid:   
-            print("150: NO BIDDING")
             query_dic = Listing.objects.filter(pk=listing_id).values("starting_bid")
             for q in query_dic:
                 current_price = q["starting_bid"]               
@@ -250,49 +249,47 @@ def place_bid(request, listing_id):
             
             if new_bid > current_price:
                 save_bid_to_DB(new_bid, user, listing)
-
                 return render(request, "auctions/listing.html", {
                 "form": form,
                 "listing": listing,
                 "listing.id": listing.id,
+                "current_price": current_price,
                 "message": "You palced your bid."
                 })  
             else:
                 return render(request, "auctions/listing.html", {
-                "form": bidForm(),
+                "form": form,
+                "listing": listing,
+                "listing.id": listing.id,
+                "current_price": current_price,
                 "message": "Your bid must be greater current price."
             })
           
         else:
-            print("160: Have at least one bidding")
+            #Have at least one bidding
             max_query_dic = Bid.objects.filter(listing=listing).aggregate(Max('ammount'))
-            print(max_query_dic) 
-
-#STOPPED HERE doesn't work current_price
-
-            current_price = max_query_dic[0].ammount__max
-            
-            new_bid = request.POST["amount"]
-            print(new_bid)
+            current_price = max_query_dic["ammount__max"]
+            new_bid = int(request.POST["ammount"])
             if new_bid > current_price:
                 save_bid_to_DB(new_bid, user, listing)
-
-                print("BID SAVED")
                 return render(request, "auctions/listing.html", {
                 "form": form,
                 "listing": listing,
                 "listing.id": listing.id,
+                "current_price": current_price,
                 "message": "You palced your bid."
                 })
             else:
                 return render(request, "auctions/listing.html", {
-                "form": bidForm(),
+                "form": form,
+                "listing": listing,
+                "listing.id": listing.id,
+                "current_price": current_price,
                 "message": "Your bid must be greater current price."
                 })  
                   
      # If the method is GET, User will see an empty form
     else:
-        print("200")
         return render(request, "auctions/listing.html", {
             "form": bidForm()
         })
@@ -306,7 +303,6 @@ def save_bid_to_DB(new_bid, user, listing):
     new_bid_form.winning = False
 
     new_bid_form.save()
-    print("BID SAVED") 
 
 
 
