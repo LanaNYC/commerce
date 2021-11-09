@@ -60,12 +60,14 @@
         <li>{{ listing.category}}</li>          
         <li>by {{listing.user_id}} </li>
 
+        {% if current_user == owner %}
         <li>
             <form action="{% url 'close_listing' listing.id %}" method="post">
                 {% csrf_token %}
                 <input type="submit", value="Close Auction">
              </form>
         </li>
+        {% endif %}
 
     </ul>
 

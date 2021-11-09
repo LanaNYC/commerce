@@ -1,0 +1,27 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+<style>
+    .div-2 {
+    background-color: #ABBAEA;
+    }
+</style>
+
+
+    <h2>{{user}}'s Closed Auctions</h2>
+
+    {% if message %}
+    <div class="div-2"> <strong> {{ message }}</strong></div>
+    {% endif %}
+
+    <ul>
+        {% for item in closed_listings %}
+        <li><a href="{% url 'listing' item.id %}" >{{ item.title }} </a> <br>
+                Starting bid: {{ item.starting_bid }} <br>
+                <img src="{{ item.image }}"/> <br>
+        </li>
+    </ul>
+        {% endfor %}
+          
+{% endblock %}

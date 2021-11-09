@@ -119,17 +119,39 @@ def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)  
     item = Watchlist.objects.filter(listing=listing_id, user=request.user)
     current_price = calculate_current_price(listing_id)
+    owner = find_owner(listing_id)
+    current_user = request.user.id
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "item": item,
         "current_price": current_price,
-    })
-#NEED 
-# 1. Maybe: Error checking - Redirect to Page Is Not Found if a user try a listing that doesn't exist.
+        "owner":owner ,
+        "current_user": current_user
 
-def closed_listing(request):
-    pass
-#TODO (MAYBE)
+    })
+
+
+@login_required
+def closed_listing(request, user_id):
+    current_user = User.objects.get(pk=user_id)
+    print("100")
+    print(current_user)
+    closed_listings = Listing.objects.filter(is_active = False, user_id=user_id)
+    print("200")
+    print(closed_listings)
+    if closed_listings: 
+        print("Closed Auctions exist")   
+        return render(request, "auctions/closed_listings.html", {
+        "closed_listings": closed_listings,
+        "user": current_user
+        })
+    else:
+        print("No closed auction")
+        return render(request, "auctions/closed_listings.html", {
+        "message": "You don't have any closed auctions yet.",
+        "user": current_user
+        })
+
 
 
 @login_required
@@ -299,20 +321,26 @@ def save_bid_to_DB(new_bid, user, listing):
     new_bid_form.user = user
     new_bid_form.listing = listing
     new_bid_form.winning = False
-
     new_bid_form.save()
 
 @login_required
 def close_listing(request, listing_id):
-    pass
     if request.method == "POST":
         if request.user.is_authenticated:   
-            signed_user = request.user.id
-            query_owner = Listing.objects.filter(pk=listing_id).values("user_id")
-            for q in query_owner:
-                owner = q["user_id"]  
-            if signed_user == owner:
-                pass
+            current_user = request.user.id
+            owner = find_owner(listing_id)
+            if current_user == owner:
+                listing = Listing.objects.get(pk=listing_id)
+                listing.is_active = False
+                listing.save()
+                return HttpResponseRedirect(reverse("index"))
+
+                
+def find_owner(listing_id):
+    query_owner = Listing.objects.filter(pk=listing_id).values("user_id")
+    for q in query_owner:
+        owner = q["user_id"]  
+    return(owner)               
 
         #click on form CLOSE, which make is_active False (update db)
         #whick trigger: take the biggest bid and make it winner = True (update)
