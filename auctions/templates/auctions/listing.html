@@ -60,7 +60,7 @@
         <li>{{ listing.category}}</li>          
         <li>by {{listing.user_id}} </li>
 
-        {% if current_user == owner %}
+        {% if current_user == owner  and active == True %}
         <li>
             <form action="{% url 'close_listing' listing.id %}" method="post">
                 {% csrf_token %}

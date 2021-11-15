@@ -105,12 +105,7 @@ def my_listing(request, user_id):
        "listings": filtered_listings
     })
 
-    #WORKS 
-    #NEED: (IMPORTANT to Do it) See def unsold_listings 
-    # Make Unsold nav. link in Nav bar (will store unsold / inactive items there)
-    # 2. ADD link to not-active listings too for this User only
    
-#NEED Not logged in cant see a page because of the item(user= user.id)
 def listing(request, listing_id):
     """
     Display Individual Listing Page.
@@ -121,37 +116,32 @@ def listing(request, listing_id):
     current_price = calculate_current_price(listing_id)
     owner = find_owner(listing_id)
     current_user = request.user.id
+    active = listing.is_active == True
+    print(active)
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "item": item,
         "current_price": current_price,
         "owner":owner ,
-        "current_user": current_user
-
+        "current_user": current_user,
+        "active": active
     })
 
 
 @login_required
 def closed_listing(request, user_id):
     current_user = User.objects.get(pk=user_id)
-    print("100")
-    print(current_user)
     closed_listings = Listing.objects.filter(is_active = False, user_id=user_id)
-    print("200")
-    print(closed_listings)
     if closed_listings: 
-        print("Closed Auctions exist")   
         return render(request, "auctions/closed_listings.html", {
         "closed_listings": closed_listings,
         "user": current_user
         })
     else:
-        print("No closed auction")
         return render(request, "auctions/closed_listings.html", {
         "message": "You don't have any closed auctions yet.",
         "user": current_user
         })
-
 
 
 @login_required
@@ -323,6 +313,7 @@ def save_bid_to_DB(new_bid, user, listing):
     new_bid_form.winning = False
     new_bid_form.save()
 
+
 @login_required
 def close_listing(request, listing_id):
     if request.method == "POST":
@@ -333,6 +324,10 @@ def close_listing(request, listing_id):
                 listing = Listing.objects.get(pk=listing_id)
                 listing.is_active = False
                 listing.save()
+                winner(listing)
+
+                
+
                 return HttpResponseRedirect(reverse("index"))
 
                 
@@ -342,9 +337,39 @@ def find_owner(listing_id):
         owner = q["user_id"]  
     return(owner)               
 
-        #click on form CLOSE, which make is_active False (update db)
-        #whick trigger: take the biggest bid and make it winner = True (update)
-        #redirect to lisitng pake with massage "you won this auction". Think how make all biding and watch list inactive 
+def winner(listing):   
+    max_query_dic = Bid.objects.filter(listing=listing).aggregate(Max('ammount'))
+    print("MAX_QUERY_DIC")
+    print(max_query_dic)
+    winning_bid = max_query_dic["ammount__max"]
+    print("winning bid")
+    print(winning_bid)
+    winner_id_QS = Bid.objects.filter(listing=listing, ammount = winning_bid).values("user")
+    print(winner_id_QS)
+    for q in winner_id_QS:
+        winner_id = q["user"]  
+        print(winner_id)
+
+
+    winner_QS = Bid.objects.filter(listing=listing, ammount = winning_bid, user = winner_id)
+    print(winner_QS)
+    for winner in winner_QS:
+        print(winner)
+        winner.winning = True
+        print("Winning Flag changed")
+        winner.save()
+        print("Winner is SAVED")
+    return(winner)
+
+##STOPPED HERE. 
+## NEED ADD "YOU WON" FUNCTIONALITY
+
+
+
+#        listing.buyer = Bid.objects.filter(auction=listing).last().user
+
+
+
 """
 If the user is signed in and is the one who created the listing, 
      the user should have the ability to “close” the auction from this page, 
@@ -353,7 +378,3 @@ If the user is signed in and is the one who created the listing,
     If a user is signed in on a closed listing page, and the user has won that auction, 
      the page should say so.
 """
-# When action is closed, take this tame to compare and take the biggest bid
-    # this user.id will be the winner.
-    #If user.id = iser.id massage - You won
-    # else listing view - message - auction is closed. Sorry, you haven't won this time.
