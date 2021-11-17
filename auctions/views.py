@@ -105,27 +105,31 @@ def my_listing(request, user_id):
        "listings": filtered_listings
     })
 
-   
+## STOPPED HERE. need to do custom error handling for 404.
+@login_required   
 def listing(request, listing_id):
     """
     Display Individual Listing Page.
     """
-
+# smth like: if user is authonticated do this
     listing = Listing.objects.get(pk=listing_id)  
     item = Watchlist.objects.filter(listing=listing_id, user=request.user)
     current_price = calculate_current_price(listing_id)
     owner = find_owner(listing_id)
     current_user = request.user.id
     active = listing.is_active == True
-    print(active)
+    current_user_won = Bid.objects.filter(listing=listing, user= current_user, winning = True)
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "item": item,
         "current_price": current_price,
         "owner":owner ,
         "current_user": current_user,
-        "active": active
+        "active": active,
+        "acurrent_user_won": current_user_won
     })
+    #else:
+        #redirect to page - Please log in
 
 
 @login_required
@@ -325,9 +329,6 @@ def close_listing(request, listing_id):
                 listing.is_active = False
                 listing.save()
                 winner(listing)
-
-                
-
                 return HttpResponseRedirect(reverse("index"))
 
                 
@@ -339,42 +340,14 @@ def find_owner(listing_id):
 
 def winner(listing):   
     max_query_dic = Bid.objects.filter(listing=listing).aggregate(Max('ammount'))
-    print("MAX_QUERY_DIC")
-    print(max_query_dic)
     winning_bid = max_query_dic["ammount__max"]
-    print("winning bid")
-    print(winning_bid)
     winner_id_QS = Bid.objects.filter(listing=listing, ammount = winning_bid).values("user")
-    print(winner_id_QS)
     for q in winner_id_QS:
         winner_id = q["user"]  
-        print(winner_id)
-
 
     winner_QS = Bid.objects.filter(listing=listing, ammount = winning_bid, user = winner_id)
-    print(winner_QS)
     for winner in winner_QS:
-        print(winner)
         winner.winning = True
-        print("Winning Flag changed")
         winner.save()
-        print("Winner is SAVED")
     return(winner)
 
-##STOPPED HERE. 
-## NEED ADD "YOU WON" FUNCTIONALITY
-
-
-
-#        listing.buyer = Bid.objects.filter(auction=listing).last().user
-
-
-
-"""
-If the user is signed in and is the one who created the listing, 
-     the user should have the ability to “close” the auction from this page, 
-     which makes the highest bidder the winner of the auction and makes the listing no longer active.
-    
-    If a user is signed in on a closed listing page, and the user has won that auction, 
-     the page should say so.
-"""
