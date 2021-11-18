@@ -118,7 +118,8 @@ def listing(request, listing_id):
     owner = find_owner(listing_id)
     current_user = request.user.id
     active = listing.is_active == True
-    current_user_won = Bid.objects.filter(listing=listing, user= current_user, winning = True)
+    winner = get_winner(listing)
+    winner_id = winner.user.id
     return render(request, "auctions/listing.html", {
         "listing": listing,
         "item": item,
@@ -126,7 +127,7 @@ def listing(request, listing_id):
         "owner":owner ,
         "current_user": current_user,
         "active": active,
-        "acurrent_user_won": current_user_won
+        "winner_id": winner_id,
     })
     #else:
         #redirect to page - Please log in
@@ -328,7 +329,9 @@ def close_listing(request, listing_id):
                 listing = Listing.objects.get(pk=listing_id)
                 listing.is_active = False
                 listing.save()
-                winner(listing)
+                winner = get_winner(listing)
+                winner.winning = True
+                winner.save()
                 return HttpResponseRedirect(reverse("index"))
 
                 
@@ -338,7 +341,7 @@ def find_owner(listing_id):
         owner = q["user_id"]  
     return(owner)               
 
-def winner(listing):   
+def get_winner(listing):   
     max_query_dic = Bid.objects.filter(listing=listing).aggregate(Max('ammount'))
     winning_bid = max_query_dic["ammount__max"]
     winner_id_QS = Bid.objects.filter(listing=listing, ammount = winning_bid).values("user")
@@ -347,7 +350,5 @@ def winner(listing):
 
     winner_QS = Bid.objects.filter(listing=listing, ammount = winning_bid, user = winner_id)
     for winner in winner_QS:
-        winner.winning = True
-        winner.save()
-    return(winner)
+        return(winner)
 
