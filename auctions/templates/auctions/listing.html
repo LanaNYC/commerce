@@ -25,6 +25,20 @@
             <li> Current price: {{ current_price }} </li> <br>
         {% endif %}    
                
+
+    {% if winner_id == current_user %}
+
+        <h3 style="color:red;">
+            YOU WON THIS AUCTION!!! CONGRATULATION!
+        </h3>
+
+    {% elif active == False and current_user == owner %}    
+
+        <h3 style="color:red;">
+            CONGRATULATION!!! You have a winner! This auction is closed.
+        </h3>
+
+    {% else %}
         
         <li>
             <form action="{% url 'place_bid' listing.id %}" method="post">
@@ -33,8 +47,9 @@
                 <input type="submit", value="Place Bid">
              </form>
         </li>
+    {% endif %}   
        
-        <br>
+    <br>
 
         {% if user.is_authenticated %}
             {% if item %}
@@ -60,7 +75,7 @@
         <li>{{ listing.category}}</li>          
         <li>by {{listing.user_id}} </li>
 
-        {% if current_user == owner %}
+        {% if current_user == owner  and active == True %}
         <li>
             <form action="{% url 'close_listing' listing.id %}" method="post">
                 {% csrf_token %}

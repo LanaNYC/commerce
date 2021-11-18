@@ -5,8 +5,9 @@
     <h2>Login</h2>
 
     {% if message %}
-        <div>{{ message }}</div>
+        <div style="color:rgb(21, 121, 202);"><bold> {{ message }}</bold></div>
     {% endif %}
+    <br>
 
     <form action="{% url 'login' %}" method="post">
         {% csrf_token %}
