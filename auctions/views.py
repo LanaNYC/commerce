@@ -105,32 +105,33 @@ def my_listing(request, user_id):
        "listings": filtered_listings
     })
 
-## STOPPED HERE. need to do custom error handling for 404.
-@login_required   
+  
 def listing(request, listing_id):
     """
     Display Individual Listing Page.
     """
-# smth like: if user is authonticated do this
-    listing = Listing.objects.get(pk=listing_id)  
-    item = Watchlist.objects.filter(listing=listing_id, user=request.user)
-    current_price = calculate_current_price(listing_id)
-    owner = find_owner(listing_id)
-    current_user = request.user.id
-    active = listing.is_active == True
-    winner = get_winner(listing)
-    winner_id = winner.user.id
-    return render(request, "auctions/listing.html", {
-        "listing": listing,
-        "item": item,
-        "current_price": current_price,
-        "owner":owner ,
-        "current_user": current_user,
-        "active": active,
-        "winner_id": winner_id,
-    })
-    #else:
-        #redirect to page - Please log in
+    if request.user.is_authenticated: 
+        listing = Listing.objects.get(pk=listing_id)  
+        item = Watchlist.objects.filter(listing=listing_id, user=request.user)
+        current_price = calculate_current_price(listing_id)
+        owner = find_owner(listing_id)
+        current_user = request.user.id
+        active = listing.is_active == True
+        winner = get_winner(listing)
+        winner_id = winner.user.id
+        return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "item": item,
+            "current_price": current_price,
+            "owner":owner ,
+            "current_user": current_user,
+            "active": active,
+            "winner_id": winner_id,
+        })
+    else:
+        return render(request, "auctions/login.html", {
+                "message": "Please log in to continue."
+            })
 
 
 @login_required
@@ -352,3 +353,5 @@ def get_winner(listing):
     for winner in winner_QS:
         return(winner)
 
+# Comment
+#maybe use order_by() filter on QS
