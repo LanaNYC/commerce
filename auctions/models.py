@@ -36,7 +36,7 @@ class Bid(models.Model):
     winning = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.ammount} by {self.user} to {self.listing}"
+                return f"{self.ammount} by {self.user} to {self.listing}"
 
 class Watchlist(models.Model):
     id = models.AutoField(primary_key=True)
@@ -48,11 +48,23 @@ class Watchlist(models.Model):
 
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="comments")  
-    commemtText = models.TextField(blank = True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")  
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, blank=True, related_name="allListingComments") 
+    commentText = models.TextField(blank = True)
 
     def __str__(self):
-        return f"{self.commentText} by {self.user}"    
+        return f"{self.commentText} by {self.user}"   
+
+""" 
+class newComment(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")  
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="allListingComments") 
+    commentText = models.TextField(blank = True)
+
+    def __str__(self):
+        return f"{self.commentText} by {self.user}"   
+        """
 
 
 

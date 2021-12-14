@@ -16,6 +16,7 @@ from django import forms
 from django.forms import ModelForm
 
 from .models import User, Category, Listing, Bid, Comment, Watchlist
+from auctions import models
 
 
 # Create the form class.
@@ -23,11 +24,30 @@ class newListingForm(ModelForm):
     class Meta:
         model = Listing
         fields = ['title', 'description', 'starting_bid', 'image', 'category', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs=
+                {'class': "form-control"} ),
+            'description': forms.Textarea(attrs=
+                {'class': "form-control", 'rows': 4}),  
+            'starting_bid': forms. NumberInput(attrs=
+                {'class': "form-control"}),
+            'image': forms.URLInput(attrs=
+                {'class': "form-control"}),
+            'category': forms.Select(attrs=
+                {'class': "form-control"}),
+            
+        }
+  
 
 class bidForm(ModelForm):
     class Meta:
         model = Bid
-        fields = ['ammount', 'user', 'listing', 'winning']        
+        fields = ['ammount', 'user', 'listing', 'winning'] 
+
+class newCommentForm(ModelForm):
+    class Meta:
+        model = Comment
+        fields  = ['commentText']             
         
 
 
@@ -105,7 +125,8 @@ def my_listing(request, user_id):
        "listings": filtered_listings
     })
 
-  
+ ## Fix Comment model and comment display here TOO!!!!!!! 
+ ## Bug on Nimbus listing. Requires winner_id. Need to handle sitiation if there is no bids, aka no winners.
 def listing(request, listing_id):
     """
     Display Individual Listing Page.
@@ -119,6 +140,7 @@ def listing(request, listing_id):
         active = listing.is_active == True
         winner = get_winner(listing)
         winner_id = winner.user.id
+        #comments = Comment.objects.filter(listing = listing)
         return render(request, "auctions/listing.html", {
             "listing": listing,
             "item": item,
@@ -127,6 +149,7 @@ def listing(request, listing_id):
             "current_user": current_user,
             "active": active,
             "winner_id": winner_id,
+            #"comments": comments,
         })
     else:
         return render(request, "auctions/login.html", {
@@ -342,6 +365,7 @@ def find_owner(listing_id):
         owner = q["user_id"]  
     return(owner)               
 
+
 def get_winner(listing):   
     max_query_dic = Bid.objects.filter(listing=listing).aggregate(Max('ammount'))
     winning_bid = max_query_dic["ammount__max"]
@@ -353,5 +377,58 @@ def get_winner(listing):
     for winner in winner_QS:
         return(winner)
 
-# Comment
-#maybe use order_by() filter on QS
+
+@login_required
+def add_comment(request, listing_id):
+    """
+    Users who are signed in should be able to add comments to the listing page. 
+    """
+
+    if request.method == "POST":
+        print("ADD COMMENT FUNCTION")
+        form = newCommentForm(request.POST)
+        if form.is_valid():
+            print("Form is valid")
+            user = request.user
+            print(user)
+            listing = Listing.objects.get(pk = listing_id)
+            listing = listing
+            print(listing)
+            commentText = request.POST["comment"]
+            print(commentText)
+            newComment = form.save()
+            return render(request, "auctions/listing.html", {
+                "form": form,
+                "message": "Your comment is posted"
+                })   
+        else:
+            print("Form is invalid")
+            print(form.errors.as_data())
+            return render(request, "auctions/listing.html", {
+             "form": newCommentForm(),
+                "message": "Your form is invalid."
+            })   
+    # If the method is GET, User will see an empty form
+    else:
+        print("GET ADD Comment")
+        return render(request, "auctions/listing.html", {
+                "form": newCommentForm(),
+                })   
+##STOPPED hERE; Form is valid. Need to do migrations. Dont forget to use PYTHON3 in a command line!!!!! 
+
+
+def all_categories(request):
+        
+    categories = Category.objects.order_by("description")
+    return render(request, "auctions/all_categories.html", {
+        "categories": categories
+    })
+    
+
+def display_category(request, category_id):
+     
+    listings = Listing.objects.filter(is_active = True, category_id=category_id).order_by("title")
+    return render(request, "auctions/index.html", {
+        "listings": listings
+    })
+    
