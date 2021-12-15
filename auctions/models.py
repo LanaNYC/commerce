@@ -48,23 +48,14 @@ class Watchlist(models.Model):
 
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")  
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, blank=True, related_name="allListingComments") 
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name="comments")  
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, blank=True, null=True, related_name="allListingComments") 
     commentText = models.TextField(blank = True)
 
     def __str__(self):
         return f"{self.commentText} by {self.user}"   
 
-""" 
-class newComment(models.Model):
-    id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")  
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="allListingComments") 
-    commentText = models.TextField(blank = True)
 
-    def __str__(self):
-        return f"{self.commentText} by {self.user}"   
-        """
 
 
 

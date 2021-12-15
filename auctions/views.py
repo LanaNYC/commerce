@@ -125,8 +125,7 @@ def my_listing(request, user_id):
        "listings": filtered_listings
     })
 
- ## Fix Comment model and comment display here TOO!!!!!!! 
- ## Bug on Nimbus listing. Requires winner_id. Need to handle sitiation if there is no bids, aka no winners.
+
 def listing(request, listing_id):
     """
     Display Individual Listing Page.
@@ -138,9 +137,17 @@ def listing(request, listing_id):
         owner = find_owner(listing_id)
         current_user = request.user.id
         active = listing.is_active == True
-        winner = get_winner(listing)
-        winner_id = winner.user.id
-        #comments = Comment.objects.filter(listing = listing)
+       
+        have_bid_QS = Bid.objects.filter(listing=listing)
+        if not have_bid_QS:
+            winner_id = None
+        else:
+            winner = get_winner(listing)
+            winner_id = winner.user.id
+       
+        comments = Comment.objects.filter(listing = listing)
+        if not comments:    
+            comments = None
         return render(request, "auctions/listing.html", {
             "listing": listing,
             "item": item,
@@ -149,7 +156,7 @@ def listing(request, listing_id):
             "current_user": current_user,
             "active": active,
             "winner_id": winner_id,
-            #"comments": comments,
+            "comments": comments,
         })
     else:
         return render(request, "auctions/login.html", {
@@ -383,38 +390,28 @@ def add_comment(request, listing_id):
     """
     Users who are signed in should be able to add comments to the listing page. 
     """
-
+    user = request.user
+    listing = Listing.objects.get(pk = listing_id)
+    listing = listing
     if request.method == "POST":
-        print("ADD COMMENT FUNCTION")
         form = newCommentForm(request.POST)
         if form.is_valid():
-            print("Form is valid")
-            user = request.user
-            print(user)
-            listing = Listing.objects.get(pk = listing_id)
-            listing = listing
-            print(listing)
-            commentText = request.POST["comment"]
-            print(commentText)
-            newComment = form.save()
-            return render(request, "auctions/listing.html", {
-                "form": form,
-                "message": "Your comment is posted"
-                })   
+            comment = form.save(commit=False)
+            comment.user = user
+            comment.listing = listing
+            comment.commentText = request.POST["comment"]
+            comment.save()
+            return HttpResponseRedirect(reverse("listing", args=[listing_id])) 
         else:
-            print("Form is invalid")
-            print(form.errors.as_data())
             return render(request, "auctions/listing.html", {
              "form": newCommentForm(),
                 "message": "Your form is invalid."
             })   
     # If the method is GET, User will see an empty form
     else:
-        print("GET ADD Comment")
         return render(request, "auctions/listing.html", {
                 "form": newCommentForm(),
                 })   
-##STOPPED hERE; Form is valid. Need to do migrations. Dont forget to use PYTHON3 in a command line!!!!! 
 
 
 def all_categories(request):

@@ -124,14 +124,25 @@
             <br>
     </div>   
     <br>
+    <div>
+        <h5>
+            Comments:
+        </h5>
+    </div>
     <div class=".container-fluid ps-3 pe-3"> 
         {% if comments %}
-        <li>
+       
             {% for comment in comments%}
-                {{comments.commentText}}
-                {{comments.user}}
+            <li> 
+                <strong>
+                    {{comment.user}}
+                </strong>
+                said
+                {{comment.commentText}}
+               <br> 
+            </li>   
             {% endfor %}
-        </li>
+        
         {% endif %}
     </div>    
     <br>
