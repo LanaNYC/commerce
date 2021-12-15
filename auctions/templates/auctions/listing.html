@@ -14,18 +14,35 @@
     
     <h2>{{listing.title}} </h2>
 
-    <ul>
-        <li>{{listing.description}} </li><br>
-        <li><img src="{{ listing.image }}"/> </li><br>
-        <li>Starting bid: {{ listing.starting_bid }} </li><br>
+    
+    <div class=".container-fluid ps-3 pe-3">  
+        <div class="row p-3">
+            <div class="col-md-4">  
+                <img class="img-fluid" src="{{ listing.image }}"/> 
+            </div>
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-8 fs-5">    
+                        {{listing.description}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>                    
+    <br>        
+    <div class=".container-fluid ps-3 pe-3"> 
+        Starting bid: ${{ listing.starting_bid }}.00
+        <br>
        
         {% if current_price is None %}
-            <li> Current price: {{ listing.starting_bid }} </li><br>
+            Current price: ${{ listing.starting_bid }}.00 <br>
         {% else %}    
-            <li> Current price: {{ current_price }} </li> <br>
+            Current price: ${{ current_price }}.00  <br>
         {% endif %}    
-               
+    </div>           
+    <br>
 
+    <div class=".container-fluid ps-3 pe-3"> 
     {% if winner_id == current_user %}
 
         <h3 style="color:red;">
@@ -40,52 +57,94 @@
 
     {% else %}
         
-        <li>
+       
             <form action="{% url 'place_bid' listing.id %}" method="post">
                 {% csrf_token %}
                 <input type="number", name="ammount", placeholder="Place your bid here", min="0">
-                <input type="submit", value="Place Bid">
+                <input class="btn btn-primary" type="submit", value="Place Bid">
              </form>
-        </li>
+        
     {% endif %}   
-       
+    </div>  
     <br>
+    <div class=".container-fluid ps-3 pe-3"> 
 
         {% if user.is_authenticated %}
             {% if item %}
-            <li>
+            
                 <form action="{% url 'remove_watchlist' listing.id %}" method="post">
                     {% csrf_token %}
-                    <input type="submit", value="Remove From Watchlist">
+                    <input class="btn btn-primary" type="submit", value="Remove From Watchlist">
                  </form>
-            </li>
+            
             {% else %}
-            <li>
+           
                 <form action="{% url 'add_watchlist' listing.id %}" method="post">
                     {% csrf_token %}
-                    <input type="submit", value="Add to Watchlist">
+                    <input class="btn btn-primary" type="submit", value="Add to Watchlist">
                  </form>
-            </li>
+            
             {% endif %}
             <br>
         {% else %}
             <h2>Please log in to be able to add item to watchlist</h2>
         {% endif %}
-        <br>
-        <li>{{ listing.category}}</li>          
-        <li>by {{listing.user_id}} </li>
-
+    </div>    
+    <br>
+    <div class=".container-fluid ps-3 pe-3"> 
+        <p class="fs-5 fw-bold">
+            Details:
+        </p>
+        Category: {{ listing.category}} <br>         
+        Listed by {{listing.user_id}}
+    </div>    
+    <br>
+    <div class=".container-fluid ps-3 pe-3"> 
         {% if current_user == owner  and active == True %}
-        <li>
+       
             <form action="{% url 'close_listing' listing.id %}" method="post">
                 {% csrf_token %}
-                <input type="submit", value="Close Auction">
+                <input class="btn btn-primary btn-sm" type="submit", value="Close Auction">
              </form>
-        </li>
+        
         {% endif %}
-
-    </ul>
-
-    
+    </div>
+    <br>
+    <div class=".container-fluid ps-3 pe-3"> 
+       
+            <form action="{% url 'add_comment' listing.id %}" method="post" id="comment_form">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <textarea rows="4" cols="50" name="comment" form="comment_form">
+                    Enter comment here...
+                </textarea>
+                <br>
+                <input class="btn btn-primary btn-sm" type="submit", value="Post your comment">
+            </form>
+            <br>
+    </div>   
+    <br>
+    <div>
+        <h5>
+            Comments:
+        </h5>
+    </div>
+    <div class=".container-fluid ps-3 pe-3"> 
+        {% if comments %}
+       
+            {% for comment in comments%}
+            <li> 
+                <strong>
+                    {{comment.user}}
+                </strong>
+                said
+                {{comment.commentText}}
+               <br> 
+            </li>   
+            {% endfor %}
+        
+        {% endif %}
+    </div>    
+    <br>
 
 {% endblock %}

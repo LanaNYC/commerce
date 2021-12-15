@@ -3,13 +3,31 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    <ul>
+    <div class=".container-fluid .container-fluid ps-3 pe-3">
         {% for listing in listings %}
-        <li><a href="{% url 'listing' listing.id %}" >{{ listing.title }} </a> <br>
-                Starting bid: {{ listing.starting_bid }} <br>
-                <img src="{{ listing.image }}"/> <br>
-                {{ listing.category}}
-        </li>
+        <div class="row p-3 border">
+            <div class="col-md-4">
+                <img class="img-fluid"   src="{{ listing.image }}"/> 
+            </div>
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-8 fs-5 fw-bold">
+                        <a href="{% url 'listing' listing.id %}" >{{ listing.title }} </a> 
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-8 fw-bold">
+                        Starting bid: ${{ listing.starting_bid }}.00 
+                    </div>
+                </div>    
+                <div class="row">
+                    <div class="col-8">
+                        Created by {{ listing.user_id}}
+                    </div>
+                </div> 
+            </div>                 
+        </div>
+        <br>
         {% endfor %}
-    </ul>
+    </div> 
 {% endblock %}
