@@ -42,7 +42,7 @@ class newListingForm(ModelForm):
 class bidForm(ModelForm):
     class Meta:
         model = Bid
-        fields = ['ammount', 'user', 'listing', 'winning'] 
+        fields = ['ammount'] 
 
 class newCommentForm(ModelForm):
     class Meta:
@@ -55,7 +55,7 @@ def index(request):
     """
     Display All active listings for ALL users (loggedin or not)
     """
-    listings = Listing.objects.filter(is_active = True)
+    listings = Listing.objects.filter(is_active = True).order_by("title")
     return render(request, "auctions/index.html", {
         "listings": listings
     })
@@ -248,6 +248,7 @@ def create_listing(request, user_id):
 
     if request.method == "POST":
         form = newListingForm(request.POST)
+        user = request.user
         if form.is_valid():
             title = request.POST["title"]
             db_title = Listing.objects.filter(title=title, user_id=request.user.id)
@@ -258,7 +259,9 @@ def create_listing(request, user_id):
                     "message": "You already have an auction with this title."
                 })  
             else:   
-                new_action=form.save()
+                new_auction=form.save(commit=False)
+                new_auction.user_id= user
+                new_auction.save()
                 return HttpResponseRedirect(reverse("index"))
         else:
             return render(request, "auctions/create.html", {
@@ -291,7 +294,6 @@ def place_bid(request, listing_id):
             if new_bid > current_price:
                 save_bid_to_DB(new_bid, user, listing)
                 return render(request, "auctions/listing.html", {
-                "form": form,
                 "listing": listing,
                 "listing.id": listing.id,
                 "current_price": new_bid,
@@ -312,7 +314,6 @@ def place_bid(request, listing_id):
             if new_bid > current_price:
                 save_bid_to_DB(new_bid, user, listing)
                 return render(request, "auctions/listing.html", {
-                "form": form,
                 "listing": listing,
                 "listing.id": listing.id,
                 "has_abid": has_abid,
@@ -321,7 +322,6 @@ def place_bid(request, listing_id):
                 })
             else:
                 return render(request, "auctions/listing.html", {
-                "form": form,
                 "listing": listing,
                 "listing.id": listing.id,
                 "current_price": current_price,

@@ -43,7 +43,7 @@
     <br>
 
     <div class=".container-fluid ps-3 pe-3"> 
-    {% if winner_id == current_user %}
+    {% if active == False and winner_id == current_user %}
 
         <h3 style="color:red;">
             YOU WON THIS AUCTION!!! CONGRATULATION!
@@ -99,6 +99,7 @@
         Listed by {{listing.user_id}}
     </div>    
     <br>
+
     <div class=".container-fluid ps-3 pe-3"> 
         {% if current_user == owner  and active == True %}
        
@@ -109,6 +110,7 @@
         
         {% endif %}
     </div>
+
     <br>
     <div class=".container-fluid ps-3 pe-3"> 
        
